@@ -121,7 +121,19 @@
       <section id="dataView" class="view">
         <div class="research-hero"><div><div class="eyebrow">REAL MEASUREMENT → COMPUTATION</div><h2>Measurement & Data Bridge</h2><p>Import sensor data with quantity, units, calibration and provenance, or capture numeric samples from an Arduino-compatible macOS serial device.</p></div><div class="research-badge" id="activeWorkspaceBadge">No project selected</div></div>
         <div class="two-col">
-          <div class="tool-panel"><h3>Import measurement</h3><label>File path<input id="datasetPath" placeholder="/Users/.../hall-sensor.csv" /></label><div class="form-grid"><label>Name<input id="datasetName" placeholder="Hall scan 01" /></label><label>Quantity<input id="datasetQuantity" placeholder="Magnetic field Bz" /></label><label>Unit<input id="datasetUnit" placeholder="mT" /></label><label>Sensor<input id="datasetSensor" placeholder="Hall sensor" /></label></div><label>Calibration / notes<input id="datasetCalibration" placeholder="offset corrected; calibration reference..." /></label><button id="importDataset" class="primary">Import Dataset</button></div>
+          <div class="tool-panel"><h3>Import measurement</h3><label>Source measurement (CSV, TSV, JSON or HDF5)
+              <div class="form-row"><input id="datasetPath" placeholder="Click Browse to choose a file…" aria-label="Selected measurement file path" />
+              <button type="button" class="secondary" id="browseMeasurement">Browse on this Mac…</button></div>
+            </label><div class="form-grid"><label>Name<input id="datasetName" placeholder="Hall scan 01" /></label><label>Quantity<input id="datasetQuantity" placeholder="Magnetic field Bz" /></label><label>Unit<input id="datasetUnit" placeholder="mT" /></label><label>Sensor<input id="datasetSensor" placeholder="Hall sensor" /></label></div><label>Calibration / notes<input id="datasetCalibration" placeholder="offset corrected; calibration reference..." /></label><button id="importDataset" class="primary">Review Import →</button>
+             <div id="datasetImportReview" class="measurement-review" hidden>
+              <h4>Confirm measurement import</h4>
+              <p id="datasetReviewSummary" role="status"></p>
+              <p class="hint">A copy and checksum are stored in the selected Physical Lab project. Your original source is not modified.</p>
+              <div class="form-row">
+               <button type="button" id="confirmDatasetImport" class="primary">Confirm & Import into Project</button>
+               <button type="button" id="cancelDatasetImport" class="secondary">Cancel</button>
+              </div>
+             </div></div>
           <div class="tool-panel"><h3>Arduino / serial capture</h3><div class="form-row"><button id="scanSerial" class="secondary">Scan Devices</button><select id="serialDevice"><option value="">No device scanned</option></select></div><div class="form-grid"><label>Baud<input id="serialBaud" type="number" value="115200" /></label><label>Seconds<input id="serialSeconds" type="number" value="10" min="1" max="300" /></label><label>Name<input id="serialName" value="Arduino measurement" /></label><label>Quantity<input id="serialQuantity" value="Sensor value" /></label><label>Unit<input id="serialUnit" placeholder="mT / V / °C" /></label><label>Sensor<input id="serialSensor" value="Arduino sensor" /></label></div><p class="hint">Expected serial lines: one numeric value per line, or CSV where the final field is numeric.</p><button id="captureSerial" class="primary">Capture to Project</button></div>
         </div>
         <div class="section-head"><div><h3>Project datasets</h3><p>Imported files are copied into the project and hashed; original source paths remain in metadata.</p></div><button id="refreshDatasets" class="secondary small">Refresh</button></div><div id="datasetGrid" class="dataset-grid"></div>
