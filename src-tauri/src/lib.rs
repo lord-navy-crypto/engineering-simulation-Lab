@@ -1118,6 +1118,30 @@ async fn install_dependency(app:AppHandle, dependency_id:String) -> Result<Strin
 }
 
 
+/// Open macOS native file chooser from inside Engineering Lab, avoiding
+/// copied Finder paths. The selected source file remains untouched.
+#[tauri::command]
+fn choose_measurement_source()->Result<Option<String>,String>{
+    let output=Command::new("/usr/bin/osascript")
+        .args(["-e","POSIX path of (choose file with prompt \"Select a measurement file for Engineering Lab\")"])
+        .output().map_err(|e|format!("Could not open macOS file picker: {e}"))?;
+    if !output.status.success(){
+        let reason=String::from_utf8_lossy(&output.stderr);
+        if reason.contains("-128")||reason.to_lowercase().contains("cancel"){return Ok(None);}
+        return Err(format!("macOS file picker failed: {}",reason.trim()));
+    }
+    let selected=String::from_utf8(output.stdout).map_err(|_|"Invalid file path encoding")?;
+    let path=std::path::PathBuf::from(selected.trim_end_matches(['\r','\n']));
+    if !path.is_file(){return Err("Selected measurement is not a regular file".into());}
+    let ext=path.extension().and_then(|x|x.to_str()).unwrap_or("").to_ascii_lowercase();
+    if !["csv","tsv","json","h5","hdf5"].contains(&ext.as_str()){
+        return Err("Choose a measurement file: CSV, TSV, JSON, H5 or HDF5".into());
+    }
+    let bytes=std::fs::metadata(&path).map_err(|e|format!("Cannot inspect source: {e}"))?.len();
+    if bytes>200_000_000 {return Err("Selected measurement exceeds the 200 MB import guard".into());}
+    Ok(Some(path.to_string_lossy().to_string()))
+}
+
 #[tauri::command]
 fn data_directory(app:AppHandle)->Result<String,String>{Ok(data_root(&app)?.to_string_lossy().to_string())}
 
@@ -1432,7 +1456,7 @@ pub fn run() {
         .manage(PhysicalLabState::default())
         .invoke_handler(tauri::generate_handler![list_modules, list_dependencies, dependency_statuses, dependency_action, install_dependency, data_directory, open_data_directory, log_directory, open_log_directory, runtime_status, module_statuses, install_module, uninstall_module, launch_module, stop_module,
             research::create_workspace, research::list_workspaces, research::open_workspace, research::record_run_snapshot,
-            research::import_measurement_dataset, research::list_datasets, research::list_serial_devices, research::capture_serial_measurement,
+            choose_measurement_source, research::import_measurement_dataset, research::list_datasets, research::list_serial_devices, research::capture_serial_measurement,
             research::analyze_dataset, research::validate_dataset_columns, research::lab_compatibility_matrix, research::repair_lab_environment,
             research::scientific_smoke_tests, research::pipeline_templates, research::save_pipeline, research::create_campaign,
             research::adapter_statuses, research::export_reproducibility_package, research::list_run_snapshots, research::compare_run_snapshots, research::list_campaigns, research::campaign_action,
