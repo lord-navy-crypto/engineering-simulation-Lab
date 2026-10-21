@@ -304,10 +304,45 @@ async function createProject(){
   const name=el('workspaceName').value.trim();if(!name){toast('Enter a project name.',true);return}if(!invoke){toast('Project creation is available in the desktop build.');return}
   try{const w=await invoke('create_workspace',{name});activeWorkspaceId=w.id;localStorage.setItem('physicalLab.activeWorkspace',w.id);el('workspaceName').value='';await refreshResearchBasics();renderResearch();toast(`Created ${w.name}.`)}catch(e){toast(String(e),true)}
 }
-async function importMeasurement(){
-  if(!activeWorkspaceId){toast('Create or select a project first.',true);return}if(!invoke){toast('Measurement import is available in the desktop build.');return}
+let reviewedMeasurement=null;
+async function browseMeasurement(){
+  if(!invoke){toast('Native file browsing is available in the Mac app.',true);return;}
+  try{
+    const path=await invoke('choose_measurement_source');
+    if(!path)return;
+    el('datasetPath').value=path;
+    el('datasetName').value ||= path.split('/').pop()?.replace(/\.[^.]+$/, '') || 'Measurement';
+    reviewedMeasurement=null;el('datasetImportReview').hidden=true;
+    toast('Selected a measurement file. Review it before importing into the project.');
+  }catch(error){toast('Could not choose source: '+String(error),true);}
+}
+function importMeasurement(){
+  if(!activeWorkspaceId){toast('Create or select a project first.',true);return;}
+  if(!invoke){toast('Measurement import is available in the desktop build.',true);return;}
   const payload={workspaceId:activeWorkspaceId,sourcePath:el('datasetPath').value.trim(),name:el('datasetName').value.trim()||'Measurement',quantity:el('datasetQuantity').value.trim()||'Measured quantity',unit:el('datasetUnit').value.trim(),sensor:el('datasetSensor').value.trim(),calibration:el('datasetCalibration').value.trim()};
-  try{await invoke('import_measurement_dataset',payload);await refreshResearchBasics();renderResearch();toast('Measurement imported with provenance and checksum.')}catch(e){toast(String(e),true)}
+  const ext=payload.sourcePath.split('.').pop()?.toLowerCase();
+  if(!payload.sourcePath||!['csv','tsv','json','h5','hdf5'].includes(ext)){toast('Choose a CSV, TSV, JSON or HDF5 measurement before importing.',true);return;}
+  reviewedMeasurement=payload;
+  const label=workspaces.find(w=>w.id===payload.workspaceId)?.name||payload.workspaceId;
+  el('datasetReviewSummary').textContent='Project: '+label+' · File: '+payload.sourcePath.split('/').pop()+' · Quantity: '+payload.quantity+' · Unit: '+(payload.unit||'not specified');
+  el('datasetImportReview').hidden=false;
+}
+async function confirmMeasurementImport(){
+  const payload=reviewedMeasurement;
+  if(!payload)return;
+  if(activeWorkspaceId!==payload.workspaceId){reviewedMeasurement=null;el('datasetImportReview').hidden=true;toast('Project changed; please review import again.',true);return;}
+  const button=el('confirmDatasetImport');button.disabled=true;button.textContent='Importing…';
+  try{
+    await invoke('import_measurement_dataset',payload);
+    reviewedMeasurement=null;el('datasetImportReview').hidden=true;
+    await refreshResearchBasics();renderResearch();
+    toast('Measurement imported and checksummed. It is now listed in Project datasets.');
+  }catch(e){toast('Import failed: '+String(e),true);}
+  finally{button.disabled=false;button.textContent='Confirm & Import into Project';}
+}
+function cancelMeasurementImport(){
+  reviewedMeasurement=null;el('datasetImportReview').hidden=true;
+  toast('Measurement import cancelled. Source file remains untouched.');
 }
 async function scanSerialDevices(){if(!invoke){toast('Serial scan is available in the desktop build.');return}try{const devs=await invoke('list_serial_devices');el('serialDevice').innerHTML=devs.length?devs.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join(''):'<option value="">No serial devices found</option>';toast(`${devs.length} serial device(s) found.`)}catch(e){toast(String(e),true)}}
 async function captureSerial(){
@@ -564,7 +599,10 @@ if(el('modelBuilderSpec'))el('modelBuilderSpec').onchange=()=>{invalidateModelBu
 
 if(el('createWorkspace'))el('createWorkspace').onclick=createProject;
 if(el('refreshWorkspaces'))el('refreshWorkspaces').onclick=async()=>{await refreshResearchBasics();renderResearch()};
+if(el('browseMeasurement'))el('browseMeasurement').onclick=browseMeasurement;
 if(el('importDataset'))el('importDataset').onclick=importMeasurement;
+if(el('confirmDatasetImport'))el('confirmDatasetImport').onclick=confirmMeasurementImport;
+if(el('cancelDatasetImport'))el('cancelDatasetImport').onclick=cancelMeasurementImport;
 if(el('scanSerial'))el('scanSerial').onclick=scanSerialDevices;
 if(el('captureSerial'))el('captureSerial').onclick=captureSerial;
 if(el('refreshDatasets'))el('refreshDatasets').onclick=()=>refreshDatasetsForActive(true);
