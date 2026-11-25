@@ -1,12 +1,14 @@
 # Physical Lab v0.10.0 — Reproducible Computational Physics & Engineering for macOS
 
-[![Source Integrity](https://github.com/lord-navy-crypto/Physical-Lab-v0.4.1/actions/workflows/source-integrity.yml/badge.svg)](https://github.com/lord-navy-crypto/Physical-Lab-v0.4.1/actions/workflows/source-integrity.yml)
+[![Source Integrity](https://github.com/lord-navy-crypto/engineering-simulation-Lab/actions/workflows/source-integrity.yml/badge.svg)](https://github.com/lord-navy-crypto/engineering-simulation-Lab/actions/workflows/source-integrity.yml)
 
 **Physical Lab is a native macOS Evidence-First Engineering Systems Workbench that turns ten computational-physics and engineering model families into one reproducible workflow: model / measurement → evidence → engineering decision → operations → quality / reliability → risk / economics → requirements / verification → human review.**
 
 It combines numerical-error analysis, Monte Carlo/statistical physics, stochastic simulation, nonlinear dynamics, oscillation/integration, and a RADIA-backed **magnet → electron trajectory → radiation** workflow. Physical Lab adds the engineering and research-software layer around those solvers: isolated environments, pinned source revisions, Safe/Full execution, scientific smoke tests, measurement provenance, V&V/UQ, model-specific requirement scorecards, automated refinement/replicate campaigns, convergence/cost analysis, robust-design summaries, measured/model comparison, batch planning, run provenance, and reproducibility exports.
 
 The **Unreleased Research Model Builder MVP** adds a creator path alongside the ten built-in Lab families: a trusted local `.py` model can be statically inspected without execution, converted into a human-reviewed `ModelSpec`, wrapped by a generated adapter, previewed through deterministic controls/plots, checked for original↔adapter interface equivalence, and stored as a provenance-tracked model bundle inside a canonical `.physlab` Project.
+
+> **Version status:** The repository's current product version is **0.10.0**. The Research Model Builder MVP and restored first-class bundled-Lab navigation are documented as current source-branch work under **Unreleased** in [CHANGELOG.md](CHANGELOG.md); this README does not imply that a newer tagged binary release has already been published.
 
 ## Introduction
 
@@ -110,7 +112,7 @@ New projects live directly in canonical `projects/*.physlab` stores. The old wor
 
 See `docs/V010_RELEASE_READINESS.md` plus the individual Engineering Systems layer design notes under `docs/`.
 
-## Ten validated Lab interfaces
+## Ten integrated Lab interfaces
 
 1. **Numerical Error Analysis** — Taylor evaluation, cancellation, floating-point reliability, reference comparison and convergence diagnostics.
 2. **Ising Monte Carlo Lab** — 1-D/2-D Ising systems, multiple samplers, autocorrelation/ESS, multi-chain diagnostics, finite-size analysis and critical behavior.
